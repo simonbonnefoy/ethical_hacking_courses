@@ -8,4 +8,6 @@ python-xlib
 pyautogui
 scrot
 
-
+The keylogger is set to record timestamp of each keystrok and
+take a screenshot every 5 sec to be saved in the same folder
+as the keystroke list.

