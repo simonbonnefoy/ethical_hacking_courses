@@ -27,4 +27,7 @@ def process_sniffed_packet(packet):
             print("\n\n[+] Possible username/password > " + login_info + "\n\n")
 
 
+    if packet.haslayer(scapy.DNSRR): #this is because scapy does 
+        print("[+] DNS response detected " )
+
 sniff("eth0")
