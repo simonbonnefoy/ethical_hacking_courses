@@ -3,12 +3,18 @@ import netfilterqueue
 import scapy.all as scapy
 from scapy.layers import http #you need to pip install scapy_http 
 
-#iptables -I FORWARD -j NFQUEUE --queue-num 0
-#iptables --flush
 
-#To test on local machine
-#iptables -I OUTPUT -j NFQUEUE --queue-num 0
-#iptables -I INPUT -j NFQUEUE --queue-num 0
+#if tested on a real network:
+#   -launch arp spoofer
+#   -set iptables as follow: iptables -i forward -j nfqueue --queue-num 0
+#   -lauch this script
+#
+#once you are done, flush the iptables: iptables --flush
+
+#set the iptables as follow to test on local machine test on local machine
+#iptables -i output -j nfqueue --queue-num 0
+#iptables -i input -j nfqueue --queue-num 0
+
 
 def process_packet(packet):
     scapy_packet = scapy.IP(packet.get_payload())
