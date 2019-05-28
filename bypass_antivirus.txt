@@ -1,0 +1,5 @@
+a useful tool to bypass antivirus is upx (github.com/upx/upx/releases/)
+It compresses the binary (.exe) file.
+It works on linux and windows, and it seems that there is an option 
+in pyinstaller to use it.
+You can test your executable on the website nodistribute.com
