@@ -1,13 +1,7 @@
-import urllib2
-import urllib
-import cookielib
-import threading
 import sys
-from optparse import OptionParser
-import Queue
 import web_bruter
+from optparse import OptionParser
 
-from HTMLParser import HTMLParser
 
 def get_arguments():
     parser = OptionParser()

