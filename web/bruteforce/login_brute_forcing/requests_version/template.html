@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en-gb" dir="ltr">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+	<meta charset="utf-8"/>
+	<meta name="keywords" content="joomla, Joomla"/>
+	<meta name="description" content="Joomla! - the dynamic portal engine and content management system"/>
+	<meta name="generator" content="Joomla! - Open Source Content Management"/>
+	<title>user's Site! - Administration</title>
+	<link href="/administrator/templates/isis/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon"/>
+	<link href="/media/jui/css/chosen.css?13aeffdd4776b47a3ece3f23b495d421" rel="stylesheet"/>
+	<link href="/administrator/templates/isis/css/template.css?13aeffdd4776b47a3ece3f23b495d421" rel="stylesheet"/>
+	<style>@media (max-width:480px){.view-login .container{margin-top:-170px}.btn{font-size:13px;padding:4px 10px 4px}}</style>
+	<script type="application/json" class="joomla-script-options new">{"csrf.token":"f2198d2d40893ef5b57e5a40a3809257","system.paths":{"root":"","base":"\/administrator"},"system.keepalive":{"interval":840000,"uri":"\/administrator\/index.php"}}</script>
+	<script src="/media/system/js/core.js?13aeffdd4776b47a3ece3f23b495d421"></script>
+	<!--[if lt IE 9]><script src="/media/system/js/polyfill.event.js?13aeffdd4776b47a3ece3f23b495d421"></script><![endif]-->
+	<script src="/media/system/js/keepalive.js?13aeffdd4776b47a3ece3f23b495d421"></script>
+	<script src="/media/jui/js/jquery.min.js?13aeffdd4776b47a3ece3f23b495d421"></script>
+	<script src="/media/jui/js/jquery-noconflict.js?13aeffdd4776b47a3ece3f23b495d421"></script>
+	<script src="/media/jui/js/jquery-migrate.min.js?13aeffdd4776b47a3ece3f23b495d421"></script>
+	<script src="/media/jui/js/bootstrap.min.js?13aeffdd4776b47a3ece3f23b495d421"></script>
+	<script src="/media/jui/js/chosen.jquery.min.js?13aeffdd4776b47a3ece3f23b495d421"></script>
+	<!--[if lt IE 9]><script src="/media/jui/js/html5.js?13aeffdd4776b47a3ece3f23b495d421"></script><![endif]-->
+	<script>jQuery(function($){initTooltips();$("body").on("subform-row-add",initTooltips);function initTooltips(event,container){container=container||document;$(container).find(".hasTooltip").tooltip({"html":true,"container":"body"});}});jQuery(function($){initChosen();$("body").on("subform-row-add",initChosen);function initChosen(event,container){container=container||document;$(container).find(".advancedSelect").chosen({"disable_search_threshold":10,"search_contains":true,"allow_single_deselect":true,"placeholder_text_multiple":"Type or select some options","placeholder_text_single":"Select an option","no_results_text":"No results match"});}});</script>
+
+</head>
+<body class="site com_login view-login layout-default task- itemid- ">
+	<!-- Container -->
+	<div class="container">
+		<div id="content">
+			<!-- Begin Content -->
+			<div id="element-box" class="login well">
+									<img src="/administrator/templates/isis/images/joomla.png" alt="user&#039;s Site!"/>
+								<hr/>
+				<div id="system-message-container">
+	</div>
+
+				<form action="/administrator/index.php" method="post" id="form-login" class="form-inline">
+	<fieldset class="loginform">
+		<div class="control-group">
+			<div class="controls">
+				<div class="input-prepend input-append">
+					<span class="add-on">
+						<span class="icon-user hasTooltip" title="Username"></span>
+						<label for="mod-login-username" class="element-invisible">
+							Username						</label>
+					</span>
+					<input name="username" tabindex="1" id="mod-login-username" type="text" class="input-medium" placeholder="Username" size="15" autofocus="true"/>
+					<a href="http://10.0.2.7/index.php?option=com_users&view=remind" class="btn width-auto hasTooltip" title="Forgot your username?">
+						<span class="icon-help"></span>
+					</a>
+				</div>
+			</div>
+		</div>
+		<div class="control-group">
+			<div class="controls">
+				<div class="input-prepend input-append">
+					<span class="add-on">
+						<span class="icon-lock hasTooltip" title="Password"></span>
+						<label for="mod-login-password" class="element-invisible">
+							Password						</label>
+					</span>
+					<input name="passwd" tabindex="2" id="mod-login-password" type="password" class="input-medium" placeholder="Password" size="15"/>
+					<a href="http://10.0.2.7/index.php?option=com_users&view=reset" class="btn width-auto hasTooltip" title="Forgot your password?">
+						<span class="icon-help"></span>
+					</a>
+				</div>
+			</div>
+		</div>
+							<div class="control-group">
+				<div class="controls">
+					<div class="input-prepend">
+						<span class="add-on">
+							<span class="icon-comment hasTooltip" title="Language"></span>
+							<label for="lang" class="element-invisible">
+								Language							</label>
+						</span>
+						<select id="lang" name="lang" class="advancedSelect" tabindex="4">
+	<option value="" selected="selected">Language - Default</option>
+	<option value="de-DE">Deutsch (Deutschland)</option>
+	<option value="en-GB">English (United Kingdom)</option>
+	<option value="es-ES">Espa&ntilde;ol (Espa&ntilde;a)</option>
+	<option value="he-IL">Hebrew</option>
+	<option value="pt-BR">Portugu&ecirc;s do Brasil (pt-BR)</option>
+	<option value="ro-RO">Rom&acirc;nă (Rom&acirc;nia)</option>
+	<option value="ru-RU">Русский (Russia)</option>
+	<option value="zh-CN">简体中文(中国)</option>
+</select>
+					</div>
+				</div>
+			</div>
+				<div class="control-group">
+			<div class="controls">
+				<div class="btn-group">
+					<button tabindex="5" class="btn btn-primary btn-block btn-large login-button">
+						<span class="icon-lock icon-white"></span> Log in					</button>
+				</div>
+			</div>
+		</div>
+		<input type="hidden" name="option" value="com_login"/>
+		<input type="hidden" name="task" value="login"/>
+		<input type="hidden" name="return" value="aW5kZXgucGhw"/>
+		<input type="hidden" name="f2198d2d40893ef5b57e5a40a3809257" value="1"/>	</fieldset>
+</form>
+
+			</div>
+			<noscript>
+				Warning! JavaScript must be enabled for proper operation of the Administrator Backend.			</noscript>
+			<!-- End Content -->
+		</div>
+	</div>
+	<div class="navbar navbar-fixed-bottom hidden-phone">
+		<p class="pull-right">
+			&copy; 2019 user&#039;s Site!		</p>
+		<a class="login-joomla hasTooltip" href="https://www.joomla.org" target="_blank" rel="noopener noreferrer" title="Joomla is free software released under the GNU General Public License."><span class="icon-joomla"></span></a>
+		<a href="http://10.0.2.7/" target="_blank" class="pull-left"><span class="icon-out-2"></span>Go to site home page</a>
+	</div>
+	
+</body>
+</html>
+

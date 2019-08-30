@@ -39,7 +39,7 @@ if __name__ == "__main__":
     # general settings
     options = get_arguments()
     mode = options.mode or "password"
-    user_thread = options.user_thread or 1
+    user_thread = int(options.user_thread) or 1
     username = options.username or "admin"
     passwords_file = options.password_dictionary or "./cain.txt"
     #usernames_file = "./facebook-firstnames.txt"
