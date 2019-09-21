@@ -1,0 +1,8 @@
+test
+admin
+user
+chat
+admin
+pierre
+lolo
+user

