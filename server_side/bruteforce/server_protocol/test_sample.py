@@ -1,14 +1,17 @@
 import pytest
-import network_tools
+from network_tools import NetworkTools
 from connection_tools import *
 import subprocess
 
 # content of test_sample.py
 
 
-#def test_network_tools():
-#    ping = network_tools.get_ping('127.0.0.1')
-#    assert (ping == True or ping == False)
+def test_network_tools():
+    #ping = network_tools.get_ping('127.0.0.1')
+    #assert (ping == True or ping == False)
+    network_tool = NetworkTools('127.0.0.1',22,'ssh')
+    assert (network_tool.get_ping() == True or 
+            network_tool.get_ping() == False)
 
 def test_ssh_connection_tools():
 
